@@ -1,0 +1,76 @@
+{
+  "expo": {
+    "name": "Boost Community",
+    "slug": "boost-community-expo",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "boostcommunity",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/images/splash.png",
+      "resizeMode": "cover",
+      "backgroundColor": "#090914"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "gg.boostcommunity.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/icon.png",
+        "backgroundColor": "#090914"
+      },
+      "package": "gg.boostcommunity.app",
+      "edgeToEdgeEnabled": true,
+      "googleServicesFile": "./google-services.json",
+      "permissions": [
+        "android.permission.NOTIFICATIONS",
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.VIBRATE",
+        "android.permission.CAMERA",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/images/icon.png"
+    },
+    "plugins": [
+      [
+        "expo-router",
+        {
+          "origin": "https://replit.com/"
+        }
+      ],
+      "expo-font",
+      "expo-web-browser",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "color": "#8b5cf6",
+          "sounds": []
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Boost Community accède à tes photos pour mettre à jour ton avatar."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "c8284559-a2b7-4883-b3ac-dd6efc0dcfdb"
+      }
+    },
+    "owner": "demon1"
+  }
+}

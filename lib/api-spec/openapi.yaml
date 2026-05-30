@@ -3,20 +3,40 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Boost Community API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication
+  - name: users
+    description: User management
+  - name: dashboard
+    description: Dashboard data
+  - name: missions
+    description: Missions
+  - name: campaigns
+    description: Campaigns
+  - name: coins
+    description: Coin balance and transactions
+  - name: leaderboard
+    description: Leaderboard
+  - name: achievements
+    description: Achievements
+  - name: tickets
+    description: Support tickets
+  - name: referrals
+    description: Referral system
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,13 +44,745 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterInput"
+      responses:
+        "201":
+          description: Registration successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/forgot-password:
+    post:
+      operationId: forgotPassword
+      tags: [auth]
+      summary: Forgot password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ForgotPasswordBody"
+      responses:
+        "200":
+          description: Email sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /users/me:
+    get:
+      operationId: getMe
+      tags: [users]
+      summary: Get current user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /dashboard/stats:
+    get:
+      operationId: getDashboardStats
+      tags: [dashboard]
+      summary: Get dashboard stats
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+  /dashboard/activity-feed:
+    get:
+      operationId: getActivityFeed
+      tags: [dashboard]
+      summary: Get activity feed
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Activity feed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActivityFeedItem"
+
+  /missions:
+    get:
+      operationId: listMissions
+      tags: [missions]
+      summary: List missions
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [watch, like, comment, follow, share]
+      responses:
+        "200":
+          description: List of missions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MissionWithStatus"
+
+  /missions/daily:
+    get:
+      operationId: getDailyMissions
+      tags: [missions]
+      summary: Get daily missions
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Daily missions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MissionWithStatus"
+
+  /missions/{missionId}/complete:
+    post:
+      operationId: completeMission
+      tags: [missions]
+      summary: Complete a mission
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: missionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MissionCompleteInput"
+      responses:
+        "200":
+          description: Mission completed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MissionCompleteResult"
+
+  /missions/checkin:
+    post:
+      operationId: dailyCheckin
+      tags: [missions]
+      summary: Daily check-in
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Check-in result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CheckinResult"
+
+  /campaigns:
+    get:
+      operationId: listCampaigns
+      tags: [campaigns]
+      summary: List campaigns
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, active, paused, completed]
+      responses:
+        "200":
+          description: List of campaigns
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Campaign"
+
+  /campaigns/mine:
+    get:
+      operationId: getMyCampaigns
+      tags: [campaigns]
+      summary: Get my campaigns
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: My campaigns
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Campaign"
+
+  /coins/balance:
+    get:
+      operationId: getCoinBalance
+      tags: [coins]
+      summary: Get coin balance
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Coin balance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CoinBalance"
+
+  /coins/transactions:
+    get:
+      operationId: getCoinTransactions
+      tags: [coins]
+      summary: Get coin transactions
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: Coin transactions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CoinTransaction"
+
+  /leaderboard:
+    get:
+      operationId: getLeaderboard
+      tags: [leaderboard]
+      summary: Get leaderboard
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        "200":
+          description: Leaderboard
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LeaderboardEntry"
+
+  /leaderboard/my-rank:
+    get:
+      operationId: getMyRank
+      tags: [leaderboard]
+      summary: Get my rank
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: My rank
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MyRank"
+
+  /achievements:
+    get:
+      operationId: getAchievements
+      tags: [achievements]
+      summary: Get achievements
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Achievements list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AchievementWithProgress"
+
+  /tickets:
+    get:
+      operationId: getTickets
+      tags: [tickets]
+      summary: Get my tickets
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [open, in_progress, resolved, closed]
+      responses:
+        "200":
+          description: Tickets list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Ticket"
+    post:
+      operationId: createTicket
+      tags: [tickets]
+      summary: Create a support ticket
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TicketInput"
+      responses:
+        "201":
+          description: Ticket created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ticket"
+
+  /referrals/stats:
+    get:
+      operationId: getReferralStats
+      tags: [referrals]
+      summary: Get referral stats
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Referral stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReferralStats"
+
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   schemas:
     HealthStatus:
       type: object
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
 
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required: [message]
+
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required: [message]
+
+    LoginInput:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+      required: [username, password]
+
+    RegisterInput:
+      type: object
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        referralCode:
+          type: string
+      required: [username, email, password]
+
+    ForgotPasswordBody:
+      type: object
+      properties:
+        email:
+          type: string
+      required: [email]
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+      required: [token, user]
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        email:
+          type: string
+        rank:
+          type: string
+          enum: [Bronze, Silver, Gold, Elite, Demon, Legend]
+        level:
+          type: integer
+        xp:
+          type: integer
+        coins:
+          type: integer
+        dailyStreak:
+          type: integer
+        isPremium:
+          type: boolean
+        referralCode:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, username, email, rank, level, xp, coins, dailyStreak, isPremium]
+
+    DashboardStats:
+      type: object
+      properties:
+        missionsCompleted:
+          type: integer
+        activeCampaigns:
+          type: integer
+        totalCoinsEarned:
+          type: integer
+        followersGained:
+          type: integer
+      required: [missionsCompleted, activeCampaigns, totalCoinsEarned, followersGained]
+
+    ActivityFeedItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+        description:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, type, createdAt]
+
+    Mission:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+          enum: [watch, like, comment, follow, share]
+        status:
+          type: string
+          enum: [active, paused, completed]
+        coinsReward:
+          type: integer
+        xpReward:
+          type: integer
+        targetUrl:
+          type: string
+        isDaily:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, title, type, status, coinsReward, xpReward, isDaily]
+
+    MissionWithStatus:
+      allOf:
+        - $ref: "#/components/schemas/Mission"
+        - type: object
+          properties:
+            userStatus:
+              type: string
+              enum: [active, paused, completed]
+          required: []
+
+    MissionCompleteInput:
+      type: object
+      properties:
+        proofUrl:
+          type: string
+
+    MissionCompleteResult:
+      type: object
+      properties:
+        coinsEarned:
+          type: integer
+        xpEarned:
+          type: integer
+        message:
+          type: string
+      required: [coinsEarned, xpEarned, message]
+
+    CheckinResult:
+      type: object
+      properties:
+        coinsEarned:
+          type: integer
+        streak:
+          type: integer
+        message:
+          type: string
+      required: [coinsEarned, streak, message]
+
+    Campaign:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        targetType:
+          type: string
+          enum: [watch, like, comment, follow, share]
+        targetUrl:
+          type: string
+        targetCount:
+          type: integer
+        completedCount:
+          type: integer
+        coinsRequired:
+          type: integer
+        status:
+          type: string
+          enum: [pending, active, paused, completed]
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, title, targetType, targetCount, completedCount, coinsRequired, status]
+
+    CoinBalance:
+      type: object
+      properties:
+        balance:
+          type: integer
+        pendingEarnings:
+          type: integer
+      required: [balance, pendingEarnings]
+
+    CoinTransaction:
+      type: object
+      properties:
+        id:
+          type: integer
+        amount:
+          type: integer
+        type:
+          type: string
+          enum: [earn, spend, purchase, bonus, refund, adjustment]
+        description:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, amount, type, createdAt]
+
+    LeaderboardEntry:
+      type: object
+      properties:
+        userId:
+          type: integer
+        username:
+          type: string
+        rank:
+          type: string
+          enum: [Bronze, Silver, Gold, Elite, Demon, Legend]
+        level:
+          type: integer
+        xp:
+          type: integer
+      required: [userId, username, rank, level, xp]
+
+    MyRank:
+      type: object
+      properties:
+        rank:
+          type: integer
+        xp:
+          type: integer
+        level:
+          type: integer
+      required: [rank, xp, level]
+
+    AchievementWithProgress:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        requirement:
+          type: integer
+        rewardCoins:
+          type: integer
+        progress:
+          type: integer
+        unlocked:
+          type: boolean
+      required: [id, title, category, requirement, rewardCoins, progress, unlocked]
+
+    Ticket:
+      type: object
+      properties:
+        id:
+          type: integer
+        subject:
+          type: string
+        message:
+          type: string
+        status:
+          type: string
+          enum: [open, in_progress, resolved, closed]
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, subject, message, status, createdAt]
+
+    TicketInput:
+      type: object
+      properties:
+        subject:
+          type: string
+        message:
+          type: string
+      required: [subject, message]
+
+    ReferralStats:
+      type: object
+      properties:
+        referralCode:
+          type: string
+        totalReferrals:
+          type: integer
+        coinsEarned:
+          type: integer
+      required: [referralCode, totalReferrals, coinsEarned]

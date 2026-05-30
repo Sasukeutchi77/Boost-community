@@ -30,6 +30,8 @@ tags:
     description: Support tickets
   - name: referrals
     description: Referral system
+  - name: admin
+    description: Admin panel
 
 paths:
   /healthz:
@@ -124,6 +126,102 @@ paths:
       responses:
         "200":
           description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /auth/checkin:
+    post:
+      operationId: dailyCheckin
+      tags: [auth]
+      summary: Daily check-in (streak bonus)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Check-in successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CheckinResult"
+        "409":
+          description: Already checked in today
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CheckinResult"
+
+  /auth/checkin/status:
+    get:
+      operationId: getCheckinStatus
+      tags: [auth]
+      summary: Get check-in status and next reward
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Check-in status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CheckinStatus"
+
+  /admin/stats:
+    get:
+      operationId: getAdminStats
+      tags: [admin]
+      summary: Global platform statistics
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Admin stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminStats"
+
+  /admin/users:
+    get:
+      operationId: getAdminUsers
+      tags: [admin]
+      summary: List all users
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: limit
+          schema: { type: integer, default: 50 }
+        - in: query
+          name: offset
+          schema: { type: integer, default: 0 }
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+
+  /admin/broadcast:
+    post:
+      operationId: adminBroadcast
+      tags: [admin]
+      summary: Send push notification to all users
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BroadcastInput"
+      responses:
+        "200":
+          description: Broadcast sent
           content:
             application/json:
               schema:
@@ -786,3 +884,79 @@ components:
         coinsEarned:
           type: integer
       required: [referralCode, totalReferrals, coinsEarned]
+
+    CheckinResult:
+      type: object
+      properties:
+        streak:
+          type: integer
+        coinsEarned:
+          type: integer
+        xpEarned:
+          type: integer
+        label:
+          type: string
+        newRank:
+          type: string
+          enum: [Bronze, Silver, Gold, Elite, Demon, Legend]
+        nextCheckinAt:
+          type: string
+          format: date-time
+        alreadyCheckedIn:
+          type: boolean
+      required: [streak, coinsEarned, xpEarned, label, newRank, nextCheckinAt, alreadyCheckedIn]
+
+    CheckinStatus:
+      type: object
+      properties:
+        streak:
+          type: integer
+        alreadyCheckedIn:
+          type: boolean
+        lastCheckinAt:
+          type: string
+          format: date-time
+        nextCheckinAt:
+          type: string
+          format: date-time
+        nextReward:
+          type: object
+          properties:
+            coins:
+              type: integer
+            xp:
+              type: integer
+            label:
+              type: string
+          required: [coins, xp, label]
+      required: [streak, alreadyCheckedIn, nextCheckinAt, nextReward]
+
+    AdminStats:
+      type: object
+      properties:
+        totalUsers:
+          type: integer
+        totalMissions:
+          type: integer
+        totalCampaigns:
+          type: integer
+        openTickets:
+          type: integer
+        totalCoinsEarned:
+          type: integer
+        activeUsersToday:
+          type: integer
+      required: [totalUsers, totalMissions, totalCampaigns, openTickets, totalCoinsEarned, activeUsersToday]
+
+    BroadcastInput:
+      type: object
+      properties:
+        title:
+          type: string
+        body:
+          type: string
+        data:
+          type: object
+          additionalProperties:
+            type: string
+      required: [title, body]

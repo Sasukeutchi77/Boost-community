@@ -1,4 +1,4 @@
-import { db, missionsTable, achievementsTable, campaignsTable } from "@workspace/db";
+import { db, missionsTable, achievementsTable, campaignsTable, usersTable } from "@workspace/db";
 
 async function seed() {
   console.log("Seeding database...");
@@ -42,17 +42,22 @@ async function seed() {
     console.log("  Achievements already seeded, skipping");
   }
 
-  // Demo campaigns
-  const existingCampaigns = await db.select().from(campaignsTable).limit(1);
-  if (existingCampaigns.length === 0) {
-    await db.insert(campaignsTable).values([
-      { ownerId: 1, title: "Boost mes likes TikTok", description: "J'ai besoin de likes sur mes dernières vidéos", targetType: "like", targetCount: 500, coinsRequired: 5, status: "active" },
-      { ownerId: 1, title: "Gagne des followers", description: "Rejoins ma communauté TikTok gaming", targetType: "follow", targetCount: 200, coinsRequired: 8, status: "active" },
-      { ownerId: 1, title: "Vues vidéo cuisine", description: "Regarde mes recettes et donne ton avis", targetType: "watch", targetCount: 1000, coinsRequired: 3, status: "active" },
-    ]);
-    console.log("✓ Demo campaigns seeded");
+  // Demo campaigns — only if at least one user exists
+  const ownerUser = await db.select({ id: usersTable.id }).from(usersTable).limit(1);
+  if (ownerUser.length > 0) {
+    const existingCampaigns = await db.select().from(campaignsTable).limit(1);
+    if (existingCampaigns.length === 0) {
+      await db.insert(campaignsTable).values([
+        { ownerId: 1, title: "Boost mes likes TikTok", description: "J'ai besoin de likes sur mes dernières vidéos", targetType: "like", targetCount: 500, coinsRequired: 5, status: "active" },
+        { ownerId: 1, title: "Gagne des followers", description: "Rejoins ma communauté TikTok gaming", targetType: "follow", targetCount: 200, coinsRequired: 8, status: "active" },
+        { ownerId: 1, title: "Vues vidéo cuisine", description: "Regarde mes recettes et donne ton avis", targetType: "watch", targetCount: 1000, coinsRequired: 3, status: "active" },
+      ]);
+      console.log("✓ Demo campaigns seeded");
+    } else {
+      console.log("  Campaigns already seeded, skipping");
+    }
   } else {
-    console.log("  Campaigns already seeded, skipping");
+    console.log("  No user with ID 1 found, skipping demo campaigns");
   }
 
   console.log("✅ Seeding complete!");

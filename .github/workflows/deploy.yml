@@ -1,0 +1,28 @@
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+jobs:
+  deploy:
+    name: Trigger Replit Deploy
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Trigger Replit redeploy
+        run: |
+          if [ -z "${{ secrets.REPLIT_TOKEN }}" ]; then
+            echo "⚠️  REPLIT_TOKEN not set — skipping auto-deploy."
+            echo "Add REPLIT_TOKEN + REPLIT_REPL_ID in GitHub Settings > Secrets to enable auto-deploy."
+            exit 0
+          fi
+          echo "🚀 Triggering Replit redeploy…"
+          curl -s -X POST "https://api.replit.com/v0/repls/${{ secrets.REPLIT_REPL_ID }}/deployments" \
+            -H "Authorization: Bearer ${{ secrets.REPLIT_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --fail-with-body
+          echo "✅ Redeploy triggered."

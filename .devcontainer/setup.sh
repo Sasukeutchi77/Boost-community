@@ -32,6 +32,31 @@ echo ""
 echo "5. Vérification TypeScript..."
 pnpm run typecheck || echo "  ⚠ Erreurs TS détectées — vérifiez avec : pnpm run typecheck"
 
+# ── 6. Hook git post-commit → push automatique ────────────────────────────
+echo ""
+echo "6. Configuration du push automatique après chaque commit..."
+
+HOOK_FILE=".git/hooks/post-commit"
+cat > "$HOOK_FILE" << 'HOOK'
+#!/bin/bash
+# Push automatique vers GitHub après chaque git commit
+BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null || echo "main")
+echo "🚀 Push automatique vers origin/$BRANCH..."
+git push origin "$BRANCH" 2>&1 && echo "✅ Poussé sur GitHub !" || echo "⚠️  Push échoué — faites : git push"
+HOOK
+chmod +x "$HOOK_FILE"
+echo "  ✅ Hook post-commit installé"
+
+# ── 7. Alias git save ──────────────────────────────────────────────────────
+echo ""
+echo "7. Configuration de l'alias 'git save'..."
+git config --global alias.save '!f() { msg=${1:-"update: $(date +\"%Y-%m-%d %H:%M\")\"}; git add -A && git commit -m "$msg" && git push; }; f'
+echo "  ✅ Alias 'git save' configuré"
+
+# ── 8. Alias git sync (pull + push) ───────────────────────────────────────
+git config --global alias.sync '!git pull --rebase && git push'
+echo "  ✅ Alias 'git sync' configuré"
+
 echo ""
 echo "=========================================="
 echo "  ✅ Setup terminé !"
@@ -43,5 +68,11 @@ echo "  • DB seed     → pnpm --filter @workspace/scripts run seed"
 echo "  • Expo        → cd artifacts/boost-community-expo && pnpm run dev"
 echo "  • Codegen     → pnpm --filter @workspace/api-spec run codegen"
 echo "  • Typecheck   → pnpm run typecheck"
+echo ""
+echo "  Push GitHub :"
+echo "  • git save              → ajoute tout + commit + push"
+echo "  • git save 'mon message'→ avec message personnalisé"
+echo "  • git sync              → pull + push"
+echo "  • git commit            → commit seul (push auto via hook)"
 echo "=========================================="
 echo ""

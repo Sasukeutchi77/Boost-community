@@ -43,7 +43,11 @@
         "editor.tabSize": 2,
         "typescript.tsdk": "node_modules/typescript/lib",
         "typescript.enablePromptUseWorkspaceTsdk": true,
-        "terminal.integrated.defaultProfile.linux": "bash"
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "git.enableSmartCommit": true,
+        "git.postCommitCommand": "push",
+        "git.autofetch": true,
+        "git.autofetchPeriod": 60
       }
     }
   },
@@ -52,5 +56,5 @@
     "NODE_ENV": "development"
   },
 
-  "postStartCommand": "echo '\\n✅ Boost Community prêt !\\n👉 API : pnpm --filter @workspace/api-server run dev\\n👉 Expo : cd artifacts/boost-community-expo && pnpm run dev\\n'"
+  "postStartCommand": "echo '\\n✅ Boost Community prêt !\\n👉 API     : pnpm --filter @workspace/api-server run dev\\n👉 Expo    : cd artifacts/boost-community-expo && pnpm run dev\\n👉 Push    : git save  (ou git save \"mon message\")\\n'"
 }
